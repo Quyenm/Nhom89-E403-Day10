@@ -76,7 +76,7 @@ def check_grading_jsonl(path: Path) -> Tuple[int, List[str]]:
     _merit_line("gq_d10_02", "P1 resolution SLA")
     _merit_line("gq_d10_03", "HR 12 ngày + top1 doc_id + không 10 ngày stale trong top-k")
 
-    merit_fail = any("MERIT_CHECK[" in m and "] FAIL ::" in m for m in msgs)
+    merit_fail = any(m.startswith("MERIT_CHECK[") and " FAIL ::" in m for m in msgs)
     fails = [m for m in msgs if m.startswith("FAIL:")]
     return (1 if fails or merit_fail else 0), msgs
 
