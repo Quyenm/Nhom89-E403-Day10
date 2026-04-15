@@ -1,0 +1,5 @@
+question_id,question,top1_doc_id,top1_preview,contains_expected,hits_forbidden,top1_doc_expected,top_k_used,scenario
+q_refund_window,Khach hang co bao nhieu ngay de yeu cau hoan tien ke tu khi xac nhan don?,policy_refund_v4,Yeu cau hoan tien duoc chap nhan trong vong 14 ngay lam viec ke tu xac nhan don.,no,yes,,3,inject_bad
+q_p1_sla,SLA phan hoi dau tien cho ticket P1 la bao lau?,sla_p1_2026,Ticket P1 co SLA phan hoi ban dau 15 phut va resolution trong 4 gio.,yes,no,,3,inject_bad
+q_lockout,Bao nhieu lan dang nhap sai thi tai khoan bi khoa?,it_helpdesk_faq,Tai khoan bi khoa sau 5 lan dang nhap sai lien tiep.,yes,no,,3,inject_bad
+q_leave_version,Theo chinh sach nghi phep hien hanh 2026 nhan vien duoi 3 nam kinh nghiem duoc bao nhieu ngay phep nam?,policy_refund_v4,Yeu cau duoc gui trong vong 14 ngay lam viec ke tu thoi diem xac nhan don hang.,no,yes,no,3,inject_bad
