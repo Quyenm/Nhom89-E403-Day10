@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 
@@ -17,6 +18,27 @@ class ExpectationResult:
     passed: bool
     severity: str  # "warn" | "halt"
     detail: str
+
+
+REQUIRED_DOC_IDS = frozenset(
+    {
+        "policy_refund_v4",
+        "sla_p1_2026",
+        "it_helpdesk_faq",
+        "hr_leave_policy",
+    }
+)
+
+
+def _is_iso_datetime(raw: str) -> bool:
+    value = (raw or "").strip()
+    if not value:
+        return False
+    try:
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return "T" in value
 
 
 def run_expectations(cleaned_rows: List[Dict[str, Any]]) -> Tuple[List[ExpectationResult], bool]:
@@ -109,6 +131,52 @@ def run_expectations(cleaned_rows: List[Dict[str, Any]]) -> Tuple[List[Expectati
             ok6,
             "halt",
             f"violations={len(bad_hr_annual)}",
+        )
+    )
+
+    # E7: exported_at phải là ISO datetime để monitor freshness dùng được.
+    bad_exported = [
+        r
+        for r in cleaned_rows
+        if not _is_iso_datetime((r.get("exported_at") or "").strip())
+    ]
+    ok7 = len(bad_exported) == 0
+    results.append(
+        ExpectationResult(
+            "exported_at_iso8601",
+            ok7,
+            "halt",
+            f"non_iso_exported_at_rows={len(bad_exported)}",
+        )
+    )
+
+    # E8: bốn doc nguồn chính phải còn hiện diện sau clean để retrieval không bị méo corpus.
+    seen_doc_ids = {(r.get("doc_id") or "").strip() for r in cleaned_rows}
+    missing_doc_ids = sorted(REQUIRED_DOC_IDS - seen_doc_ids)
+    ok8 = len(missing_doc_ids) == 0
+    results.append(
+        ExpectationResult(
+            "required_doc_coverage",
+            ok8,
+            "halt",
+            f"missing_doc_ids={missing_doc_ids}",
+        )
+    )
+
+    # E9: refund chunk sau clean không được còn marker migration note.
+    migration_markers = [
+        r
+        for r in cleaned_rows
+        if r.get("doc_id") == "policy_refund_v4"
+        and "policy-v3" in (r.get("chunk_text") or "").lower()
+    ]
+    ok9 = len(migration_markers) == 0
+    results.append(
+        ExpectationResult(
+            "refund_no_migration_marker",
+            ok9,
+            "warn",
+            f"violations={len(migration_markers)}",
         )
     )
 
